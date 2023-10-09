@@ -1,4 +1,6 @@
 using UnityEngine;
+using EquationSolver;
+using System.Linq;
 
 /// <summary>
 /// A utility class for ballistic calculations related to projectile targeting and interception.
@@ -22,27 +24,15 @@ public static class Ballistics
         Vector3 a = targetAcceleration - projectileAcceleration;
         Vector3 relativeTargetStartPos = targetStartPos - projectileStartPos;
 
-        var roots = FindRoots.Quartic(
-            Vector3.Dot(a, a) / 4.0f, // a
-            Vector3.Dot(a, targetVelocity), // b
-            Vector3.Dot(a, relativeTargetStartPos) + Vector3.SqrMagnitude(targetVelocity) - projectileSpeed * projectileSpeed, // c
-            2.0f * Vector3.Dot(targetVelocity, relativeTargetStartPos), // d
-            Vector3.SqrMagnitude(relativeTargetStartPos) // e
+        double[] realRoots = RootFinder.FindRealRoots(
+            Vector3.Dot(a, a) / 4.0f,
+            Vector3.Dot(a, targetVelocity),
+            Vector3.Dot(a, relativeTargetStartPos) + Vector3.SqrMagnitude(targetVelocity) - projectileSpeed * projectileSpeed,
+            2.0f * Vector3.Dot(targetVelocity, relativeTargetStartPos),
+            Vector3.SqrMagnitude(relativeTargetStartPos)
             );
 
-        float? smallestPositiveRoot = null;
-        if (roots != null)
-        {
-            foreach (var root in roots)
-            {
-                float rootFloat = System.Convert.ToSingle(root);
-                if (rootFloat > 0)
-                {
-                    if (!smallestPositiveRoot.HasValue || rootFloat < smallestPositiveRoot.Value)
-                        smallestPositiveRoot = rootFloat;
-                }
-            }
-        }
+        float? smallestPositiveRoot = realRoots.Where(root => root > 0.0).Select(root => (float?)root).DefaultIfEmpty(null).Min();
 
         if (smallestPositiveRoot.HasValue)
         {
