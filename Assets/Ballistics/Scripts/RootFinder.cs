@@ -130,7 +130,7 @@ namespace EquationSolver
             }
         }
 
-        // Source: https://www.1728.org/quartic2.htm
+        // Source: https://www.had2know.org/academics/quartic-equation-solver-calculator.html
         /// <summary>
         /// Finds the roots of the equation x^4+ax^3+bx^2+cx+d=0.
         /// </summary>
@@ -147,40 +147,179 @@ namespace EquationSolver
             b = a;
             a = 1.0;
 
-            double f = c - (3.0 * b * b / 8.0);
-            double g = d + (b * b * b / 8.0) - (b * c / 2.0);
-            double h = e - (3.0 * b * b * b * b / 256.0) + (b * b * c / 16.0) - (b * d / 4.0);
+            Complex root1 = new();
+            Complex root2 = new();
+            Complex root3 = new();
+            Complex root4 = new();
 
-            Complex p;
-            Complex q;
-
-            var (y1, y2, y3) = Cubic(f / 2.0, (f * f - 4.0 * h) / 16.0, -g * g / 64.0);
-            if (Math.Abs(y1.Imaginary) > Delta || Math.Abs(y2.Imaginary) > Delta || Math.Abs(y3.Imaginary) > Delta) // between y1, y2 and y3 there's one real and two complex numbers
+            if (b != 0.0 || d != 0.0)
             {
-                p = Complex.Sqrt(Math.Abs(y1.Imaginary) > Delta ? y1 : y2);
-                q = Complex.Sqrt(Math.Abs(y3.Imaginary) > Delta ? y3 : (Math.Abs(y2.Imaginary) > Delta ? y2 : y1));
+                if ((c == b * b / 4.0 + 2.0 * Math.Sqrt(e) && d == b * Math.Sqrt(e)) || (c == b * b / 4.0 - 2.0 * Math.Sqrt(e) && d == -b * Math.Sqrt(e)))
+                {
+                    double aa = b / 2.0;
+                    double kk = d / (2 * aa);
+                    if (aa * aa - 4 * kk < 0)
+                    {
+                        double rad = Math.Sqrt(4.0 * kk - aa * aa) / 2.0;
+                        double cad = -aa / 2.0;
+                        return (new(cad, rad), new(cad, rad), new(cad, -rad), new(cad, -rad));
+                    }
+                    else if (aa * aa - 4.0 * kk >= 0.0)
+                    {
+                        double rad = Math.Sqrt(aa * aa - 4.0 * kk) / 2.0;
+                        double cad = -aa / 2.0;
+                        return (new(cad - rad, 0.0), new(cad - rad, 0.0), new(cad + rad, 0.0), new(cad + rad, 0.0));
+                    }
+                }
+                else
+                {
+                    double y = Rescubic(b, c, d, e);
+                    double A = b * b / 4.0 - c + 2.0 * y;
+                    double r = (b * y - d) / (-2.0 * A);
+                    
+                    double qc1a;
+                    double qc1b;
+                    double qc2a;
+                    double qc2b;
+                    if (A > 0.0)
+                    {
+                        qc1a = b / 2.0 - Math.Sqrt(A);
+                        qc1b = y + Math.Sqrt(A) * r;
+                        qc2a = b / 2.0 + Math.Sqrt(A);
+                        qc2b = y - Math.Sqrt(A) * r;
+                    }
+                    else
+                    {
+                        qc1a = b / 2.0;
+                        qc1b = y + Math.Sqrt(y * y - e);
+                        qc2a = b / 2.0;
+                        qc2b = y - Math.Sqrt(y * y - e);
+                    }
+
+                    double jim = -qc1a / 2.0;
+                    double bob = qc1a * qc1a - 4.0 * qc1b;
+                    if (bob < 0.0)
+                    {
+                        double rad = Math.Sqrt(4.0 * qc1b - qc1a * qc1a) / 2.0;
+                        root1 = new(jim, rad);
+                        root2 = new(jim, -rad);
+                    }
+                    if (bob >= 0)
+                    {
+                        double rad = jim + Math.Sqrt(bob) / 2.0;
+                        double rod = jim - Math.Sqrt(bob) / 2.0;
+                        root1 = new(rad, 0.0);
+                        root2 = new(rod, 0.0);
+                    }
+
+                    double jen = -0.5 * qc2a;
+                    double bab = qc2a * qc2a - 4.0 * qc2b;
+                    if (bab < 0.0)
+                    {
+                        double royd = 0.5 * Math.Sqrt(4.0 * qc2b - qc2a * qc2a);
+                        root3 = new(jen, royd);
+                        root4 = new(jen, -royd);
+                    }
+                    if (bab >= 0)
+                    {
+                        double royd = jen + 0.5 * Math.Sqrt(bab);
+                        double rood = jen - 0.5 * Math.Sqrt(bab);
+                        root3 = new(royd, 0.0);
+                        root4 = new(rood, 0.0);
+                    }
+                }
+
             }
-            else // y1, y2, y3 are real
+            else
             {
-                (p, q, _) = SortByAbsoluteReal(y1, y2, y3);
+                if (c * c - 4.0 * e >= 0.0)
+                {
+                    if (-c + Math.Sqrt(c * c - 4.0 * e) >= 0.0)
+                    {
+                        root1 = new(Math.Sqrt(-c / 2 + 0.5 * Math.Sqrt(c * c - 4 * e)), 0.0);
+                        root2 = new(-Math.Sqrt(-c / 2 + 0.5 * Math.Sqrt(c * c - 4 * e)), 0.0);
+                    }
+                    else
+                    {
+                        root1 = new(0.0, Math.Sqrt(c / 2 - 0.5 * Math.Sqrt(c * c - 4 * e)));
+                        root2 = new(0.0, -Math.Sqrt(c / 2 - 0.5 * Math.Sqrt(c * c - 4 * e)));
+                    }
 
-                p = Complex.Sqrt(p);
-                q = Complex.Sqrt(q);
+                    if (-c - Math.Sqrt(c * c - 4.0 * e) >= 0.0)
+                    {
+                        root3 = new(Math.Sqrt(-c / 2 - 0.5 * Math.Sqrt(c * c - 4 * e)), 0.0);
+                        root4 = new(-Math.Sqrt(-c / 2 - 0.5 * Math.Sqrt(c * c - 4 * e)), 0.0);
+                    }
+                    else
+                    {
+                        root3 = new(0.0, Math.Sqrt(c / 2 + 0.5 * Math.Sqrt(c * c - 4 * e)));
+                        root4 = new(0.0, -Math.Sqrt(c / 2 + 0.5 * Math.Sqrt(c * c - 4 * e)));
+                    }
+                }
+
+                if (c * c - 4.0 * e < 0.0)
+                {
+                    double Az = -c / 2.0;
+                    double Bz = 0.5 * Math.Sqrt(4.0 * e - c * c);
+                    double y0 = Math.Sqrt(0.5 * (Math.Sqrt(Az * Az + Bz * Bz) - Az));
+
+                    root1 = new(0.5 * Bz / y0, y0);
+                    root2 = new(0.5 * Bz / y0, -y0);
+                    root3 = new(-0.5 * Bz / y0, y0);
+                    root4 = new(-0.5 * Bz / y0, -y0);
+                }
             }
 
-            Complex r = p * q != Complex.Zero ? -g / (8.0 * p * q) : Complex.Zero;
-            double s = b / (4.0 * a);
+            return (root1, root2, root3, root4);
 
-            return (p + q + r - s, p - q - r - s, -p + q - r - s, -p - q + r - s);
-
-            static (Complex first, Complex second, Complex third) SortByAbsoluteReal(Complex a, Complex b, Complex c)
+            static double Rescubic(double r, double s, double t, double u)
             {
-                (Complex first, Complex second, Complex third) result = (a, b, c);
-                if (Math.Abs(result.first.Real) < Math.Abs(result.second.Real)) (result.first, result.second) = (result.second, result.first);
-                if (Math.Abs(result.first.Real) < Math.Abs(result.third.Real)) (result.first, result.third) = (result.third, result.first);
-                if (Math.Abs(result.second.Real) < Math.Abs(result.third.Real)) (result.second, result.third) = (result.third, result.second);
+                double xx = 0.0;
 
-                return result;
+                double bb = -s / 2.0;
+                double cc = r * t / 4.0 - u;
+                double dd = s * u / 2.0 - t * t / 8.0 - r * r * u / 8.0;
+
+                double disc = (18.0 * bb * cc * dd) - (4.0 * bb * bb * bb * dd) + (bb * bb * cc * cc) - (4.0 * cc * cc * cc) - (27.0 * dd * dd);
+                double pp = cc - (bb * bb / 3.0); 
+                double qq = ((2.0 / 27.0) * (bb * bb * bb)) - (bb * cc / 3.0) + dd; 
+                double ff = (27.0 / 2.0) * qq;
+
+                if (disc > 0.0)
+                {
+                    double x1 = -bb / 3.0 + 2.0 * Math.Sqrt(-pp / 3.0) * Math.Cos((1.0 / 3.0) * Math.Acos((1.5 * qq / pp) * Math.Sqrt(-3.0 / pp)));
+                    double x2 = -bb / 3.0 + 2.0 * Math.Sqrt(-pp / 3.0) * Math.Cos((1.0 / 3.0) * Math.Acos((1.5 * qq / pp) * Math.Sqrt(-3.0 / pp)) + (2.0 / 3.0) * Math.PI);
+                    double x3 = -bb / 3.0 + 2.0 * Math.Sqrt(-pp / 3.0) * Math.Cos((1.0 / 3.0) * Math.Acos((1.5 * qq / pp) * Math.Sqrt(-3.0 / pp)) - (2.0 / 3.0) * Math.PI);
+                    double g1 = Math.Max(x1, Math.Max(x2, x3));
+                    double g3 = Math.Min(x1, Math.Min(x2, x3));
+                    double g2 = x1 + x2 + x3 - g1 - g3;
+                    if (r * r / 4.0 - s + 2.0 * g1 > 0.0) {
+                        xx = g1;
+                    }
+                    else
+                    {
+                        if (r * r / 4 - s + 2 * g2 > 0) xx = g2;
+                        else xx = g3;
+                    }
+                }
+
+                if (disc == 0)
+                {
+                    double x1 = -bb / 3.0 - (2.0 / 3.0) * Math.Cbrt(ff);
+                    double x2 = -bb / 3.0 + (1.0 / 3.0) * Math.Cbrt(ff);
+                    double g1 = Math.Max(x1, x2);
+                    double g2 = Math.Min(x1, x2);
+                    if (r * r / 4.0 - s + 2.0 * g1 > 0.0) xx = g1;
+                    else xx = g2;
+                }
+
+                if (disc < 0)
+                {
+                    double g1 = -bb / 3.0 - (1.0 / 3.0) * Math.Cbrt(ff + 0.5 * Math.Sqrt(-27.0 * disc)) - (1.0 / 3.0) * Math.Cbrt(ff - 0.5 * Math.Sqrt(-27.0 * disc));
+                    xx = g1;
+                }
+
+                return xx;
             }
         }
     }
